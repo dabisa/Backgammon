@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/main_background"
+    android:orientation="vertical">
+
+    <android.support.percent.PercentRelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:orientation="horizontal"
+
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentTop="true"
+
+            app:layout_marginBottomPercent="19%"
+            app:layout_marginEndPercent="19%"
+            app:layout_marginLeftPercent="19%"
+            app:layout_marginRightPercent="19%"
+            app:layout_marginStartPercent="19%"
+            app:layout_marginTopPercent="19%">
+
+            <android.support.percent.PercentRelativeLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1">
+                    <LinearLayout
+                        android:layout_alignParentBottom="true"
+                        android:layout_alignParentEnd="true"
+                        android:layout_alignParentLeft="true"
+                        android:layout_alignParentRight="true"
+                        android:layout_alignParentStart="true"
+                        android:layout_alignParentTop="true"
+                        app:layout_marginEndPercent="9%"
+                        app:layout_marginRightPercent="9%"
+                        android:background="@color/translucent_black">
+                        <ImageView
+                            android:id="@+id/white_player_avatar"
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:adjustViewBounds="true"
+                            android:scaleType="fitCenter"
+                            tools:src="@drawable/human" />
+                        <Button
+                            android:id="@+id/white_player_button"
+                            android:layout_weight="1"
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            tools:text="white player"
+                            android:textColor="@color/whiteText"
+                            android:textSize="@dimen/small_menu_text_size"
+                            android:background="@android:color/transparent"/>
+                    </LinearLayout>
+                </android.support.percent.PercentRelativeLayout>
+            <android.support.percent.PercentRelativeLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1">
+                <LinearLayout
+                    android:layout_alignParentBottom="true"
+                    android:layout_alignParentEnd="true"
+                    android:layout_alignParentLeft="true"
+                    android:layout_alignParentRight="true"
+                    android:layout_alignParentStart="true"
+                    android:layout_alignParentTop="true"
+                    app:layout_marginStartPercent="9%"
+                    app:layout_marginLeftPercent="9%"
+                    android:background="@color/translucent_black">
+
+                    <Button
+                        android:id="@+id/black_player_button"
+                        android:layout_weight="1"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        tools:text="black player"
+                        android:textColor="@color/whiteText"
+                        android:textSize="@dimen/small_menu_text_size"
+                        android:background="@android:color/transparent"/>
+                    <ImageView
+                        android:id="@+id/black_player_avatar"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:adjustViewBounds="true"
+                        android:scaleType="fitCenter"
+                        tools:src="@drawable/human" />
+                </LinearLayout>
+
+
+            </android.support.percent.PercentRelativeLayout>
+
+        </LinearLayout>
+    </android.support.percent.PercentRelativeLayout>
+
+    <android.support.percent.PercentRelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <Button
+            android:id="@+id/start_game"
+            android:visibility="visible"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentTop="true"
+            android:background="@color/translucent_black"
+            android:text="@string/start_game"
+            android:textColor="@color/whiteText"
+            android:textSize="@dimen/menu_text_size"
+            app:layout_marginBottomPercent="19%"
+            app:layout_marginEndPercent="19%"
+            app:layout_marginLeftPercent="19%"
+            app:layout_marginRightPercent="19%"
+            app:layout_marginStartPercent="19%"
+            app:layout_marginTopPercent="19%"/>
+
+        <Button
+            android:id="@+id/resume_game"
+            android:visibility="gone"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentTop="true"
+            android:background="@color/translucent_black"
+            android:text="@string/resume_game"
+            android:textColor="@color/whiteText"
+            android:textSize="@dimen/menu_text_size"
+            app:layout_marginBottomPercent="19%"
+            app:layout_marginEndPercent="19%"
+            app:layout_marginLeftPercent="19%"
+            app:layout_marginRightPercent="19%"
+            app:layout_marginStartPercent="19%"
+            app:layout_marginTopPercent="19%"/>
+    </android.support.percent.PercentRelativeLayout>
+
+    <android.support.percent.PercentRelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <Button
+            android:id="@+id/back_button"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentTop="true"
+            android:background="@color/translucent_black"
+            android:text="@string/back_button"
+            android:textColor="@color/whiteText"
+            android:textSize="@dimen/menu_text_size"
+            app:layout_marginBottomPercent="19%"
+            app:layout_marginEndPercent="19%"
+            app:layout_marginLeftPercent="19%"
+            app:layout_marginRightPercent="19%"
+            app:layout_marginStartPercent="19%"
+            app:layout_marginTopPercent="19%"/>
+    </android.support.percent.PercentRelativeLayout>
+</LinearLayout>

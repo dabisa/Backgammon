@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="@dimen/checker_size"
+    android:layout_height="match_parent"
+    android:layout_gravity="center_horizontal"
+    android:gravity="bottom"
+    android:orientation="vertical"
+    android:tag="checker_container"
+    tools:showIn="@layout/game_activity">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/checker_size"
+        android:tag="5"
+        tools:background="@drawable/white_checker">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:tag="counter"
+            tools:text="1" />
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/checker_size"
+        android:tag="4"
+        tools:background="@drawable/white_checker" />
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/checker_size"
+        android:tag="3"
+        tools:background="@drawable/white_checker" />
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/checker_size"
+        android:tag="2"
+        tools:background="@drawable/white_checker" />
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/checker_size"
+        android:tag="1"
+        tools:background="@drawable/white_checker" />
+</LinearLayout>

@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+        <variable name="info" type="com.dkelava.backgammon.PlayerInfo"/>
+    </data>
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <ImageView
+            android:id="@+id/player_icon"
+            android:src="@{info.iconResource}"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            tools:src="@drawable/droid"/>
+
+        <TextView
+            android:layout_weight="1"
+            android:id="@+id/player_title"
+            android:layout_width="@dimen/player_title_size"
+            android:layout_height="match_parent"
+            android:text="@{info.title}"
+            android:layout_margin="@dimen/menu_text_margin"
+            android:textAlignment="center"
+            android:gravity="center_vertical"
+            android:textColor="@color/whiteText"
+            android:textSize="@dimen/menu_text_size"
+            tools:text="Floyd"/>
+
+        <!--
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:layout_weight="100000000000"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_margin="@dimen/menu_text_margin"
+                    android:text="GAMES PLAYED:"/>
+
+                <TextView
+                    android:id="@+id/total_games_played"
+                    android:layout_weight="161803398875"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_margin="@dimen/menu_text_margin"
+                    android:text="@{String.valueOf(info.totalGamesPlayed)}"/>
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:layout_weight="100000000000"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_margin="@dimen/menu_text_margin"
+                    android:text="GAMES WON:"/>
+
+                <TextView
+                    android:id="@+id/total_games_won"
+                    android:layout_weight="161803398875"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_margin="@dimen/menu_text_margin"
+                    android:text="@{Integer.toString(info.totalGamesWon)}"/>
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:layout_weight="100000000000"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_margin="@dimen/menu_text_margin"
+                    android:text="TOTAL POINTS:"/>
+
+                <TextView
+                    android:id="@+id/total_points"
+                    android:layout_weight="161803398875"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_margin="@dimen/menu_text_margin"
+                    android:text="@{Integer.toString(info.totalPoints)}"/>
+
+            </LinearLayout>
+
+        </LinearLayout>
+        -->
+    </LinearLayout>
+
+</layout>

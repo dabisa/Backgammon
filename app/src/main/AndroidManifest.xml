@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.dkelava.backgammon">
+
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme">
+        <activity
+            android:name=".MainMenuActivity"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar.FullScreen"
+            android:screenOrientation="landscape"
+            android:configChanges="orientation">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".GameManagerActivity"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar.FullScreen"
+            android:screenOrientation="landscape"
+            android:configChanges="orientation">
+            <intent-filter>
+                <action android:name="com.dkelava.backgammon.GameManagerActivity"/>
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".GameActivity"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar.FullScreen"
+            android:screenOrientation="landscape"
+            android:configChanges="orientation">
+            <intent-filter>
+                <action android:name="com.dkelava.backgammon.GameActivity"/>
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".SelectPlayerActivity"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar.FullScreen"
+            android:screenOrientation="landscape"
+            android:label="@string/title_activity_select_player"
+            android:parentActivityName="android.support.v7.app.AppCompatActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="android.support.v7.app.AppCompatActivity" />
+        </activity>
+    </application>
+
+</manifest>

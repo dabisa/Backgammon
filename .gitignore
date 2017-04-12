@@ -1,0 +1,16 @@
+# Android Studio files
+*.iml
+/.idea
+/captures
+
+# Gradle files
+.gradle
+/local.properties
+/build
+.externalNativeBuild
+
+# OSX files
+.DS_Store
+
+#nn train folder
+/train

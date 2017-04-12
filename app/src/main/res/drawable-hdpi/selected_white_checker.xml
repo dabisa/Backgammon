@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<animation-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@drawable/white_checker" android:duration="200"/>
+    <item android:duration="100">
+        <layer-list >
+            <item android:drawable="@drawable/white_checker"/>
+            <item>
+                <shape android:shape="oval">
+                    <size
+                        android:width="@dimen/checker_size"
+                        android:height="@dimen/checker_size" />
+                    <solid android:color="@color/selected_point_color"/>
+                </shape>
+            </item>
+        </layer-list>
+    </item>
+</animation-list>

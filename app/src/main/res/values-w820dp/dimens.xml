@@ -1,0 +1,9 @@
+<resources>
+    <dimen name="activity_horizontal_margin">16dp</dimen>
+    <dimen name="activity_vertical_margin">16dp</dimen>
+
+    <dimen name="menu_text_size">41dp</dimen>
+    <dimen name="checker_size">47dp</dimen>
+    <dimen name="die_size">47dp</dimen>
+    <dimen name="die_margin">5.22dp</dimen>
+</resources>

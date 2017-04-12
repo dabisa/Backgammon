@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- MAIN LINES -->
+    <fraction name="board_left">11.5%</fraction>
+    <fraction name="board_right">10.9%</fraction>
+    <fraction name="board_top">7.4%</fraction>
+    <fraction name="board_bottom">7.0%</fraction>
+
+    <fraction name="left_board_right">53.4%</fraction>
+    <fraction name="right_board_left">54%</fraction>
+    <fraction name="top_board_bottom">55.6%</fraction>
+    <fraction name="bottom_board_top">56%</fraction>
+
+    <fraction name="middle_board_top">44.4%</fraction>
+    <fraction name="middle_board_bottom">44%</fraction>
+
+    <fraction name="bar_left">3.75%</fraction>
+    <fraction name="bar_right">91.75%</fraction>
+    <fraction name="home_left">92%</fraction>
+    <fraction name="home_right">3.5%</fraction>
+
+    <!-- CENTER_MIDDLE -->
+    <fraction name="center_middle_left">46.6%</fraction>
+    <fraction name="center_middle_right">46%</fraction>
+    <fraction name="center_middle_top">20.4%</fraction>
+    <fraction name="center_middle_bottom">20%</fraction>
+
+    <!-- BAR1 -->
+    <fraction name="bar1_left">@fraction/bar_left</fraction>
+    <fraction name="bar1_right">@fraction/bar_right</fraction>
+    <fraction name="bar1_top">@fraction/bottom_board_top</fraction>
+    <fraction name="bar1_bottom">@fraction/board_bottom</fraction>
+
+    <!-- BAR2 -->
+    <fraction name="bar2_left">@fraction/bar_left</fraction>
+    <fraction name="bar2_right">@fraction/bar_right</fraction>
+    <fraction name="bar2_top">@fraction/board_top</fraction>
+    <fraction name="bar2_bottom">@fraction/top_board_bottom</fraction>
+
+    <!-- HOME1 -->
+    <fraction name="home1_left">@fraction/home_left</fraction>
+    <fraction name="home1_right">@fraction/home_right</fraction>
+    <fraction name="home1_top">@fraction/bottom_board_top</fraction>
+    <fraction name="home1_bottom">@fraction/board_bottom</fraction>
+
+    <!-- HOME2 -->
+    <fraction name="home2_left">@fraction/home_left</fraction>
+    <fraction name="home2_right">@fraction/home_right</fraction>
+    <fraction name="home2_top">@fraction/board_top</fraction>
+    <fraction name="home2_bottom">@fraction/top_board_bottom</fraction>
+
+    <!-- QUADRANT 1 -->
+    <fraction name="quadrant1_left">@fraction/right_board_left</fraction>
+    <fraction name="quadrant1_right">@fraction/board_right</fraction>
+    <fraction name="quadrant1_top">@fraction/bottom_board_top</fraction>
+    <fraction name="quadrant1_bottom">@fraction/board_bottom</fraction>
+
+    <!-- QUADRANT 2 -->
+    <fraction name="quadrant2_left">@fraction/board_left</fraction>
+    <fraction name="quadrant2_right">@fraction/left_board_right</fraction>
+    <fraction name="quadrant2_top">@fraction/bottom_board_top</fraction>
+    <fraction name="quadrant2_bottom">@fraction/board_bottom</fraction>
+
+    <!-- QUADRANT 3 -->
+    <fraction name="quadrant3_left">@fraction/board_left</fraction>
+    <fraction name="quadrant3_right">@fraction/left_board_right</fraction>
+    <fraction name="quadrant3_top">@fraction/board_top</fraction>
+    <fraction name="quadrant3_bottom">@fraction/top_board_bottom</fraction>
+
+    <!-- QUADRANT 4 -->
+    <fraction name="quadrant4_left">@fraction/left_board_right</fraction>
+    <fraction name="quadrant4_right">@fraction/board_right</fraction>
+    <fraction name="quadrant4_top">@fraction/board_top</fraction>
+    <fraction name="quadrant4_bottom">@fraction/top_board_bottom</fraction>
+
+    <!-- LEFT MIDDLE -->
+    <fraction name="left_middle_left">@fraction/board_left</fraction>
+    <fraction name="left_middle_right">@fraction/left_board_right</fraction>
+    <fraction name="left_middle_top">@fraction/middle_board_top</fraction>
+    <fraction name="left_middle_bottom">@fraction/middle_board_bottom</fraction>
+
+    <!-- RIGHT MIDDLE -->
+    <fraction name="right_middle_left">@fraction/right_board_left</fraction>
+    <fraction name="right_middle_right">@fraction/board_right</fraction>
+    <fraction name="right_middle_top">@fraction/middle_board_top</fraction>
+    <fraction name="right_middle_bottom">@fraction/middle_board_bottom</fraction>
+
+    <!-- LEFT BUTTON -->
+    <fraction name="left_button_left">@fraction/bar_left</fraction>
+    <fraction name="left_button_right">@fraction/bar_right</fraction>
+    <fraction name="left_button_top">@fraction/middle_board_top</fraction>
+    <fraction name="left_button_bottom">@fraction/middle_board_bottom</fraction>
+
+    <!-- RIGHT BUTTON -->
+    <fraction name="right_button_left">@fraction/home_left</fraction>
+    <fraction name="right_button_right">@fraction/home_right</fraction>
+    <fraction name="right_button_top">@fraction/middle_board_top</fraction>
+    <fraction name="right_button_bottom">@fraction/middle_board_bottom</fraction>
+</resources>
