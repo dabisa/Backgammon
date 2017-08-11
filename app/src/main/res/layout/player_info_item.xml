@@ -5,7 +5,7 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <data>
-        <variable name="info" type="com.dkelava.backgammon.PlayerInfo"/>
+        <variable name="info" type="com.dkelava.backgammon.android.PlayerInfo"/>
     </data>
 
     <LinearLayout
