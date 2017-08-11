@@ -30,6 +30,7 @@ public class Game {
     private Player playerTwo;
 
     protected Game() {
+        this.state = new Backgammon().encode();
     }
 
     public Game(Player playerOne, Player playerTwo) {
