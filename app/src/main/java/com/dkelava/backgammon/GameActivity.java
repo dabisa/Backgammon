@@ -46,8 +46,7 @@ import com.dkelava.bglib.nn.BackgammonNeuralNetwork;
 import com.dkelava.bglib.nn.SimpleInputCoder;
 import com.dkelava.bglib.nn.SimpleOutputCoder;
 import com.dkelava.bglib.strategy.Strategy;
-
-import org.apache.commons.compress.utils.IOUtils;
+import com.google.common.io.ByteStreams;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -282,9 +281,7 @@ public class GameActivity extends AppCompatActivity {
             // Get the InputStream
             InputStream inputStream = getResources().openRawResource(id);
             FileOutputStream fileOutputStream = new FileOutputStream(dest);
-            // IOUtils is a class from Apache Commons IO
-            // It writes an InputStream to an OutputStream
-            IOUtils.copy(inputStream, fileOutputStream);
+            ByteStreams.copy(inputStream, fileOutputStream);
             fileOutputStream.close();
             return new File(dest);
         } catch (NoSuchFieldException e) {
