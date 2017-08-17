@@ -3,7 +3,6 @@ package com.dkelava.backgammon.websrv.domain;
 import com.dkelava.backgammon.bglib.model.Backgammon;
 
 import javax.persistence.*;
-import java.util.List;
 
 /**
  * Created by Dabisa on 11/08/2017.
@@ -29,6 +28,12 @@ public class Game {
     @ManyToOne
     private Player playerTwo;
 
+    @Column
+    private Boolean accepted;
+
+    @Column
+    private int lastAction;
+
     protected Game() {
         this.state = new Backgammon().encode();
     }
@@ -37,6 +42,8 @@ public class Game {
         this.playerOne = playerOne;
         this.playerTwo = playerTwo;
         this.state = new Backgammon().encode();
+        this.accepted = false;
+        this.lastAction = 0;
     }
 
     public Integer getId() {
@@ -69,5 +76,21 @@ public class Game {
 
     public void setPlayerTwo(Player playerTwo) {
         this.playerTwo = playerTwo;
+    }
+
+    public Boolean getAccepted() {
+        return accepted;
+    }
+
+    public void setAccepted(Boolean accepted) {
+        this.accepted = accepted;
+    }
+
+    public int getLastAction() {
+        return lastAction;
+    }
+
+    public void setNextAction() {
+        this.lastAction++;
     }
 }
