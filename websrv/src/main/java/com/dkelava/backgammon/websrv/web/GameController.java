@@ -40,7 +40,7 @@ public class GameController {
             case Moving:
             case DoubleStake:
             case NoMoves:
-                resource.add(linkTo(methodOn(GameController.class).doAction(gameId, actionId + 1, null)).withRel("next"));
+                resource.add(linkTo(methodOn(GameController.class).doAction(gameId, actionId + 1, null)).withRel("nextAction"));
                 break;
             default:
                 break;
@@ -50,10 +50,8 @@ public class GameController {
 
     // CREATE GAME
     @RequestMapping(method = RequestMethod.POST)
-    public ResponseEntity<?> createGame(@PathVariable int gameId, @RequestBody Map<String, String> json) throws Exception {
-        String player = json.get("whitePlayer");
-        String opponent = json.get("blackPlayer");
-        Game game = gameService.createGame(player, opponent);
+    public ResponseEntity<?> createGame(@PathVariable int gameId, @RequestBody GameDescriptorDto gameDescriptorDto) throws Exception {
+        Game game = gameService.createGame(gameDescriptorDto.getPlayer(), gameDescriptorDto.getOpponent());
         if(game != null) {
             return ResponseEntity.created(linkTo(methodOn(GameController.class).getGame(gameId)).toUri()).build();
         } else {
