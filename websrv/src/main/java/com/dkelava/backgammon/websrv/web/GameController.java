@@ -11,7 +11,6 @@ import org.springframework.data.rest.webmvc.support.RepositoryEntityLinks;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import java.util.Map;
 
 /**
  * Created by Dabisa on 12/08/2017.
@@ -89,7 +88,7 @@ public class GameController {
     @RequestMapping(method = RequestMethod.PUT, path = "/action/{actionId}")
     public ResponseEntity<?> doAction(@PathVariable(value = "gameId") int gameId,
                                   @PathVariable(value = "actionId") int actionId,
-                                  @RequestBody Map<String, String> json) throws Exception {
+                                  @RequestBody ActionDto actionDto) throws Exception {
         Game game = gameRepository.findOne(gameId);
         if(game != null ) {
             // check if action is next action
@@ -98,8 +97,7 @@ public class GameController {
                 Backgammon backgammon = new Backgammon();
                 backgammon.restore(state);
 
-                String action = json.get("action");
-                switch(GameAction.parse(action)) {
+                switch(actionDto.getAction()) {
                     case Roll:
                         if (backgammon.getState().getStatus() == Status.Rolling || backgammon.getState().getStatus() == Status.Initial) {
                             backgammon.roll(randomDieStrategy.roll(), randomDieStrategy.roll());
@@ -112,10 +110,8 @@ public class GameController {
                         }
 
                     case Move:
-                        String sourceName = json.get("source");
-                        String destinationName = json.get("destination");
-                        Point source = Point.decode(sourceName);
-                        Point destination = Point.decode(destinationName);
+                        Point source = Point.decode(actionDto.getSource());
+                        Point destination = Point.decode(actionDto.getDestination());
                         if(backgammon.getState().getStatus() == Status.Moving && backgammon.getState().getMoves().isMovable(source, destination)) {
                             backgammon.move(source, destination);
                             game.setState(backgammon.encode());
@@ -172,7 +168,7 @@ public class GameController {
                         return ResponseEntity.ok().location(linkTo(methodOn(GameController.class).getGame(gameId)).toUri()).build();
 
                     default:
-                        return ResponseEntity.badRequest().body("Invalid action: " + action);
+                        return ResponseEntity.badRequest().body("Invalid action: " + actionDto.getAction());
                 }
             } else {
                 return new ResponseEntity<>(HttpStatus.METHOD_NOT_ALLOWED);
