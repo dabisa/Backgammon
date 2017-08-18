@@ -7,13 +7,13 @@ import javax.validation.constraints.NotNull;
 public class ActionDto {
 
     @NotNull
-    private final ActionType action;
+    private final String action;
     private final String source;
     private final String destination;
 
     @JsonCreator
     public ActionDto(
-            @JsonProperty("action") ActionType action,
+            @JsonProperty("action") String action,
             @JsonProperty("source") String source,
             @JsonProperty("destination") String destination) {
         this.action = action;
@@ -21,7 +21,7 @@ public class ActionDto {
         this.destination = destination;
     }
 
-    public final ActionType getAction() {
+    public final String getAction() {
         return action;
     }
 

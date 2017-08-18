@@ -7,10 +7,15 @@ import com.dkelava.backgammon.websrv.domain.Game;
 import com.dkelava.backgammon.websrv.repo.GameRepository;
 import com.dkelava.backgammon.websrv.services.GameService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.MethodParameter;
 import org.springframework.data.rest.webmvc.support.RepositoryEntityLinks;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
+
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 
 /**
  * Created by Dabisa on 12/08/2017.
@@ -97,78 +102,85 @@ public class GameController {
                 Backgammon backgammon = new Backgammon();
                 backgammon.restore(state);
 
-                switch(actionDto.getAction()) {
-                    case Roll:
-                        if (backgammon.getState().getStatus() == Status.Rolling || backgammon.getState().getStatus() == Status.Initial) {
-                            backgammon.roll(randomDieStrategy.roll(), randomDieStrategy.roll());
+                ActionType actionType = ActionType.parse(actionDto.getAction());
+                if(actionType != null) {
+                    switch (actionType) {
+                        case Roll:
+                            if (backgammon.getState().getStatus() == Status.Rolling || backgammon.getState().getStatus() == Status.Initial) {
+                                backgammon.roll(randomDieStrategy.roll(), randomDieStrategy.roll());
+                                game.setState(backgammon.encode());
+                                game.setNextAction();
+                                gameRepository.save(game);
+                                return ResponseEntity.ok().location(linkTo(methodOn(GameController.class).getGame(gameId)).toUri()).build();
+                            } else {
+                                return new ResponseEntity<>(HttpStatus.METHOD_NOT_ALLOWED);
+                            }
+
+                        case Move:
+                            Point source = Point.decode(actionDto.getSource());
+                            Point destination = Point.decode(actionDto.getDestination());
+                            if (backgammon.getState().getStatus() == Status.Moving && backgammon.getState().getMoves().isMovable(source, destination)) {
+                                backgammon.move(source, destination);
+                                game.setState(backgammon.encode());
+                                game.setNextAction();
+                                gameRepository.save(game);
+                                return ResponseEntity.ok().location(linkTo(methodOn(GameController.class).getGame(gameId)).toUri()).build();
+                            } else {
+                                return new ResponseEntity<>(HttpStatus.METHOD_NOT_ALLOWED);
+                            }
+
+                        case PickUpDice:
+                            if (backgammon.getState().getStatus() == Status.NoMoves) {
+                                backgammon.clearDice();
+                                game.setState(backgammon.encode());
+                                game.setNextAction();
+                                gameRepository.save(game);
+                                return ResponseEntity.ok().location(linkTo(methodOn(GameController.class).getGame(gameId)).toUri()).build();
+                            } else {
+                                return new ResponseEntity<>(HttpStatus.METHOD_NOT_ALLOWED);
+                            }
+
+                        case OfferDouble:
+                            if (backgammon.getState().getStatus() == Status.Rolling || backgammon.getState().getCubeOwner() == backgammon.getState().getCurrentPlayer()) {
+                                backgammon.doubleStake();
+                                game.setState(backgammon.encode());
+                                game.setNextAction();
+                                gameRepository.save(game);
+                                return ResponseEntity.ok().location(linkTo(methodOn(GameController.class).getGame(gameId)).toUri()).build();
+                            } else {
+                                return new ResponseEntity<>(HttpStatus.METHOD_NOT_ALLOWED);
+                            }
+
+                        case AcceptDouble:
+                            if (backgammon.getState().getStatus() == Status.DoubleStake) {
+                                backgammon.acceptDouble();
+                                game.setState(backgammon.encode());
+                                game.setNextAction();
+                                gameRepository.save(game);
+                                return ResponseEntity.ok().location(linkTo(methodOn(GameController.class).getGame(gameId)).toUri()).build();
+                            } else {
+                                return new ResponseEntity<>(HttpStatus.METHOD_NOT_ALLOWED);
+                            }
+
+                        case Quit:
+                            if (backgammon.getState().getStatus() == Status.DoubleStake) {
+                                backgammon.rejectDouble();
+                            } else {
+                                //todo quit game
+                                //backgammon.
+                            }
                             game.setState(backgammon.encode());
                             game.setNextAction();
                             gameRepository.save(game);
                             return ResponseEntity.ok().location(linkTo(methodOn(GameController.class).getGame(gameId)).toUri()).build();
-                        } else {
+
+                        default:
                             return new ResponseEntity<>(HttpStatus.METHOD_NOT_ALLOWED);
-                        }
-
-                    case Move:
-                        Point source = Point.decode(actionDto.getSource());
-                        Point destination = Point.decode(actionDto.getDestination());
-                        if(backgammon.getState().getStatus() == Status.Moving && backgammon.getState().getMoves().isMovable(source, destination)) {
-                            backgammon.move(source, destination);
-                            game.setState(backgammon.encode());
-                            game.setNextAction();
-                            gameRepository.save(game);
-                            return ResponseEntity.ok().location(linkTo(methodOn(GameController.class).getGame(gameId)).toUri()).build();
-                        } else {
-                            return new ResponseEntity<>(HttpStatus.METHOD_NOT_ALLOWED);
-                        }
-
-                    case PickUpDice:
-                        if(backgammon.getState().getStatus() == Status.NoMoves) {
-                            backgammon.clearDice();
-                            game.setState(backgammon.encode());
-                            game.setNextAction();
-                            gameRepository.save(game);
-                            return ResponseEntity.ok().location(linkTo(methodOn(GameController.class).getGame(gameId)).toUri()).build();
-                        } else {
-                            return new ResponseEntity<>(HttpStatus.METHOD_NOT_ALLOWED);
-                        }
-
-                    case OfferDouble:
-                        if(backgammon.getState().getStatus() == Status.Rolling || backgammon.getState().getCubeOwner() == backgammon.getState().getCurrentPlayer()) {
-                            backgammon.doubleStake();
-                            game.setState(backgammon.encode());
-                            game.setNextAction();
-                            gameRepository.save(game);
-                            return ResponseEntity.ok().location(linkTo(methodOn(GameController.class).getGame(gameId)).toUri()).build();
-                        } else {
-                            return new ResponseEntity<>(HttpStatus.METHOD_NOT_ALLOWED);
-                        }
-
-                    case AcceptDouble:
-                        if(backgammon.getState().getStatus() == Status.DoubleStake) {
-                            backgammon.acceptDouble();
-                            game.setState(backgammon.encode());
-                            game.setNextAction();
-                            gameRepository.save(game);
-                            return ResponseEntity.ok().location(linkTo(methodOn(GameController.class).getGame(gameId)).toUri()).build();
-                        } else {
-                            return new ResponseEntity<>(HttpStatus.METHOD_NOT_ALLOWED);
-                        }
-
-                    case Quit:
-                        if(backgammon.getState().getStatus() == Status.DoubleStake) {
-                            backgammon.rejectDouble();
-                        } else {
-                            //todo quit game
-                            //backgammon.
-                        }
-                        game.setState(backgammon.encode());
-                        game.setNextAction();
-                        gameRepository.save(game);
-                        return ResponseEntity.ok().location(linkTo(methodOn(GameController.class).getGame(gameId)).toUri()).build();
-
-                    default:
-                        return ResponseEntity.badRequest().body("Invalid action: " + actionDto.getAction());
+                    }
+                } else {
+                    return ResponseEntity.badRequest().body(new ApiError(
+                            HttpStatus.BAD_REQUEST,
+                            "Invalid Message Body", "Invalid action: " + actionDto.getAction()));
                 }
             } else {
                 return new ResponseEntity<>(HttpStatus.METHOD_NOT_ALLOWED);
@@ -177,4 +189,14 @@ public class GameController {
             return ResponseEntity.notFound().build();
         }
     }
+
+    /*
+    @ExceptionHandler(Exception.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResponseEntity handleConflict(Exception e, HttpServletResponse response)
+            throws IOException {
+
+        return new ResponseEntity(e.getMessage(), HttpStatus.BAD_REQUEST);
+    }
+    */
 }
