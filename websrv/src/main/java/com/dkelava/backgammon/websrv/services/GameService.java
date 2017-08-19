@@ -1,5 +1,6 @@
 package com.dkelava.backgammon.websrv.services;
 
+import com.dkelava.backgammon.bglib.model.Backgammon;
 import com.dkelava.backgammon.websrv.domain.Game;
 import com.dkelava.backgammon.websrv.domain.Player;
 import com.dkelava.backgammon.websrv.repo.GameRepository;
@@ -33,7 +34,8 @@ public class GameService {
         if(playerTwo == null) {
             throw new RuntimeException("Player does not exist: " + playerTwoName);
         }
-        Game game = new Game(playerOne, playerTwo);
+        Backgammon backgammon = new Backgammon();
+        Game game = new Game(playerOne, playerTwo, backgammon.encode());
         return gameRepository.save(game);
     }
 }

@@ -1,12 +1,7 @@
 package com.dkelava.backgammon.websrv.domain;
 
-import com.dkelava.backgammon.bglib.model.Backgammon;
-
 import javax.persistence.*;
 
-/**
- * Created by Dabisa on 11/08/2017.
- */
 @Entity
 public class Game {
 
@@ -16,11 +11,6 @@ public class Game {
 
     @Column
     private String state;
-
-    /*
-    @Column
-    private List<String> history;
-    */
 
     @ManyToOne
     private Player playerOne;
@@ -34,14 +24,10 @@ public class Game {
     @Column
     private int lastAction;
 
-    protected Game() {
-        this.state = new Backgammon().encode();
-    }
-
-    public Game(Player playerOne, Player playerTwo) {
+    public Game(Player playerOne, Player playerTwo, String state) {
         this.playerOne = playerOne;
         this.playerTwo = playerTwo;
-        this.state = new Backgammon().encode();
+        this.state = state;
         this.accepted = false;
         this.lastAction = 0;
     }
