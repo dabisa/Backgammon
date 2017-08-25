@@ -1,4 +1,4 @@
-package com.dkelava.backgammon.websrv.web;
+package com.dkelava.backgammon.websrv.resources;
 
 /**
  * Created by Dabisa on 17/08/2017.

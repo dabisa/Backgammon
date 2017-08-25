@@ -1,4 +1,6 @@
-package com.dkelava.backgammon.websrv.web;
+package com.dkelava.backgammon.websrv.resources;
+
+import com.dkelava.backgammon.websrv.exceptions.InvalidActionException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -24,7 +26,12 @@ public enum ActionType {
     }
 
     public static ActionType parse(String name) {
-        return myMap.get(name);
+        ActionType action = myMap.get(name);
+        if(action != null) {
+            return action;
+        } else {
+            throw new InvalidActionException("Unknown action: " + name);
+        }
     }
 
     private final String name;

@@ -1,5 +1,6 @@
-package com.dkelava.backgammon.websrv.web;
+package com.dkelava.backgammon.websrv.controller;
 
+import com.dkelava.backgammon.websrv.resources.ApiError;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;

@@ -1,31 +1,23 @@
 package com.dkelava.backgammon.websrv.services;
 
-import com.dkelava.backgammon.bglib.model.Backgammon;
 import com.dkelava.backgammon.websrv.domain.Game;
 import com.dkelava.backgammon.websrv.domain.Player;
+import com.dkelava.backgammon.websrv.exceptions.MissingResourceException;
 import com.dkelava.backgammon.websrv.repo.GameRepository;
 import com.dkelava.backgammon.websrv.repo.PlayerRepository;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-/**
- * Created by Dabisa on 11/08/2017.
- */
 @Service
 public class GameService {
-    private GameRepository gameRepository;
-    private PlayerRepository playerRepository;
-
-    protected GameService() {
-    }
 
     @Autowired
-    public GameService(GameRepository gameRepository, PlayerRepository playerRepository) {
-        this.gameRepository = gameRepository;
-        this.playerRepository = playerRepository;
-    }
+    private GameRepository gameRepository;
+    @Autowired
+    private PlayerRepository playerRepository;
 
-    public Game createGame(String playerOneName, String playerTwoName) {
+    public Game createGame(String playerOneName, String playerTwoName, String state) {
         Player playerOne = playerRepository.findByName(playerOneName);
         if(playerOne == null) {
             throw new RuntimeException("Player does not exist: " + playerOneName);
@@ -34,8 +26,20 @@ public class GameService {
         if(playerTwo == null) {
             throw new RuntimeException("Player does not exist: " + playerTwoName);
         }
-        Backgammon backgammon = new Backgammon();
-        Game game = new Game(playerOne, playerTwo, backgammon.encode());
+        Game game = new Game(playerOne, playerTwo, state);
         return gameRepository.save(game);
+    }
+
+    public Game getGame(int gameId) {
+        Game game = this.gameRepository.findOne(gameId);
+        if(game != null) {
+            return game;
+        } else {
+            throw new MissingResourceException("Game does not exist: " + gameId);
+        }
+    }
+
+    public void saveGame(Game game) {
+        gameRepository.save(game);
     }
 }

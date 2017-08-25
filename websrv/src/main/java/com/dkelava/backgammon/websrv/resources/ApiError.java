@@ -1,4 +1,4 @@
-package com.dkelava.backgammon.websrv.web;
+package com.dkelava.backgammon.websrv.resources;
 
 import org.springframework.http.HttpStatus;
 

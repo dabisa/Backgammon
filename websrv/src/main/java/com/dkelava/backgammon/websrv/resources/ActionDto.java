@@ -1,4 +1,4 @@
-package com.dkelava.backgammon.websrv.web;
+package com.dkelava.backgammon.websrv.resources;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;

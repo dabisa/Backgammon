@@ -24,6 +24,9 @@ public class Game {
     @Column
     private int lastAction;
 
+    protected Game() {
+    }
+
     public Game(Player playerOne, Player playerTwo, String state) {
         this.playerOne = playerOne;
         this.playerTwo = playerTwo;
@@ -34,10 +37,6 @@ public class Game {
 
     public Integer getId() {
         return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
     }
 
     public String getState() {

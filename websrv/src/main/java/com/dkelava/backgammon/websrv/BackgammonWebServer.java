@@ -1,5 +1,6 @@
 package com.dkelava.backgammon.websrv;
 
+import com.dkelava.backgammon.bglib.model.Backgammon;
 import com.dkelava.backgammon.websrv.services.GameService;
 import com.dkelava.backgammon.websrv.services.PlayerService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +24,7 @@ public class BackgammonWebServer implements CommandLineRunner {
 	public void run(String... args) throws Exception {
 		playerService.createPlayer("Floyd");
 		playerService.createPlayer("Dabisa");
-		gameService.createGame("Floyd", "Dabisa");
+		Backgammon backgammon = new Backgammon();
+		gameService.createGame("Floyd", "Dabisa", backgammon.encode());
 	}
 }
