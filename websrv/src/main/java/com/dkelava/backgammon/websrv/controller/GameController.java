@@ -35,7 +35,6 @@ public class GameController {
         String username = auth.getName();
         Backgammon backgammon = new Backgammon();
         Game game = gameService.createGame(username, gameDescriptorDto.getWhitePlayerName(), gameDescriptorDto.getBlackPlayerName(), backgammon.encode());
-        gameService.saveGame(game);
         return ResponseEntity.created(linkTo(methodOn(GameController.class).getGame(game.getId())).toUri()).build();
     }
 
@@ -45,7 +44,7 @@ public class GameController {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String username = auth.getName();
         gameService.acceptGame(gameId, username);
-        return ResponseEntity.ok().location(linkTo(methodOn(GameController.class).getGame(gameId)).toUri()).build();
+        return ResponseEntity.noContent().location(linkTo(methodOn(GameController.class).getGame(gameId)).toUri()).build();
     }
 
     // GET GAME STATE
