@@ -1,23 +1,29 @@
 package com.dkelava.backgammon.websrv.resources;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
  * Created by Dabisa on 17/08/2017.
  */
 public class GameDescriptorDto {
 
-    private final String player;
-    private final String opponent;
+    private final String whitePlayerName;
+    private final String blackPlayerName;
 
-    public GameDescriptorDto(String player, String opponent) {
-        this.player = player;
-        this.opponent = opponent;
+    @JsonCreator
+    public GameDescriptorDto(
+            @JsonProperty("whitePlayerName") String whitePlayerName,
+            @JsonProperty("blackPlayerName") String blackPlayerName) {
+        this.whitePlayerName = whitePlayerName;
+        this.blackPlayerName = blackPlayerName;
     }
 
-    public final String getPlayer() {
-        return player;
+    public String getWhitePlayerName() {
+        return whitePlayerName;
     }
 
-    public final String getOpponent() {
-        return opponent;
+    public String getBlackPlayerName() {
+        return blackPlayerName;
     }
 }

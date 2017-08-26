@@ -13,13 +13,16 @@ public class Game {
     private String state;
 
     @ManyToOne
-    private Player playerOne;
+    private Player whitePlayer;
 
     @ManyToOne
-    private Player playerTwo;
+    private Player blackPlayer;
 
     @Column
-    private Boolean accepted;
+    private Boolean whitePlayerAccepted;
+
+    @Column
+    private Boolean blackPlayerAccepted;
 
     @Column
     private int lastAction;
@@ -27,11 +30,12 @@ public class Game {
     protected Game() {
     }
 
-    public Game(Player playerOne, Player playerTwo, String state) {
-        this.playerOne = playerOne;
-        this.playerTwo = playerTwo;
+    public Game(Player whitePlayer, Player blackPlayer, String state) {
+        this.whitePlayer = whitePlayer;
+        this.blackPlayer = blackPlayer;
         this.state = state;
-        this.accepted = false;
+        this.whitePlayerAccepted = false;
+        this.blackPlayerAccepted = false;
         this.lastAction = 0;
     }
 
@@ -47,28 +51,12 @@ public class Game {
         this.state = state;
     }
 
-    public Player getPlayerOne() {
-        return playerOne;
+    public Player getWhitePlayer() {
+        return whitePlayer;
     }
 
-    public void setPlayerOne(Player playerOne) {
-        this.playerOne = playerOne;
-    }
-
-    public Player getPlayerTwo() {
-        return playerTwo;
-    }
-
-    public void setPlayerTwo(Player playerTwo) {
-        this.playerTwo = playerTwo;
-    }
-
-    public Boolean getAccepted() {
-        return accepted;
-    }
-
-    public void setAccepted(Boolean accepted) {
-        this.accepted = accepted;
+    public Player getBlackPlayer() {
+        return blackPlayer;
     }
 
     public int getLastAction() {
@@ -77,5 +65,17 @@ public class Game {
 
     public void setNextAction() {
         this.lastAction++;
+    }
+
+    public void acceptWhite() {
+        this.whitePlayerAccepted = true;
+    }
+
+    public void acceptBlack() {
+        this.blackPlayerAccepted = true;
+    }
+
+    public boolean isAcepted() {
+        return this.whitePlayerAccepted && this.blackPlayerAccepted;
     }
 }

@@ -39,8 +39,6 @@ public class MyRestExceptionHandler extends ResponseEntityExceptionHandler {
         return new ResponseEntity(errorMessage, headers, status);
     }
 
-
-
     @Override
     protected ResponseEntity<Object> handleMethodArgumentNotValid(
             MethodArgumentNotValidException ex,
@@ -59,4 +57,6 @@ public class MyRestExceptionHandler extends ResponseEntityExceptionHandler {
                 new ApiError(HttpStatus.BAD_REQUEST, ex.getLocalizedMessage(), errors);
         return handleExceptionInternal(ex, apiError, headers, apiError.getStatus(), request);
     }
+
+
 }

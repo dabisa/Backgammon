@@ -15,6 +15,8 @@ import com.dkelava.backgammon.websrv.services.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
@@ -29,17 +31,20 @@ public class GameController {
     // CREATE GAME
     @RequestMapping(path = "/games", method = RequestMethod.POST)
     public ResponseEntity<?> createGame(@RequestBody GameDescriptorDto gameDescriptorDto) throws Exception {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String username = auth.getName();
         Backgammon backgammon = new Backgammon();
-        Game game = gameService.createGame(gameDescriptorDto.getPlayer(), gameDescriptorDto.getOpponent(), backgammon.encode());
+        Game game = gameService.createGame(username, gameDescriptorDto.getWhitePlayerName(), gameDescriptorDto.getBlackPlayerName(), backgammon.encode());
+        gameService.saveGame(game);
         return ResponseEntity.created(linkTo(methodOn(GameController.class).getGame(game.getId())).toUri()).build();
     }
 
     // ACCEPT GAME
     @RequestMapping(path = "/games/{gameId}", method = RequestMethod.PATCH)
     public ResponseEntity<?> acceptGame(@PathVariable int gameId, @RequestBody boolean accepted) throws Exception {
-        Game game = gameService.getGame(gameId);
-        game.setAccepted(accepted);
-        gameService.saveGame(game);
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String username = auth.getName();
+        gameService.acceptGame(gameId, username);
         return ResponseEntity.ok().location(linkTo(methodOn(GameController.class).getGame(gameId)).toUri()).build();
     }
 
@@ -48,20 +53,19 @@ public class GameController {
     public ResponseEntity<GameResource> getGame(@PathVariable int gameId) throws Exception {
         Game game = gameService.getGame(gameId);
         int actionId = game.getLastAction();
-
         Backgammon backgammon = new Backgammon();
         try {
             backgammon.restore(game.getState());
         } catch(Exception ex) {
             throw new InternalError("Invalid backgammon state");
         }
-
         GameResource gameResource = new GameResource(backgammon.getState());
         gameResource.add(linkTo(methodOn(GameController.class).getGame(gameId)).withSelfRel());
         if(!isGameFinished(backgammon.getState())) {
             gameResource.add(linkTo(methodOn(GameController.class).doAction(gameId, actionId + 1, null)).withRel("nextAction"));
         }
-
+        gameResource.add(linkTo(methodOn(PlayerController.class).getPlayer(game.getWhitePlayer().getName())).withRel("whitePlayer"));
+        gameResource.add(linkTo(methodOn(PlayerController.class).getPlayer(game.getBlackPlayer().getName())).withRel("blackPlayer"));
         return ResponseEntity.ok(gameResource);
     }
 
