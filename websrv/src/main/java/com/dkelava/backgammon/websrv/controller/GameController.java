@@ -5,6 +5,7 @@ import static org.springframework.hateoas.mvc.ControllerLinkBuilder.*;
 import com.dkelava.backgammon.bglib.game.actions.actions.*;
 import com.dkelava.backgammon.bglib.model.Backgammon;
 import com.dkelava.backgammon.bglib.model.BackgammonState;
+import com.dkelava.backgammon.bglib.model.Color;
 import com.dkelava.backgammon.websrv.domain.Game;
 import com.dkelava.backgammon.websrv.exceptions.InternalError;
 import com.dkelava.backgammon.websrv.resources.*;
@@ -39,12 +40,12 @@ public class GameController {
     }
 
     // ACCEPT GAME
-    @RequestMapping(path = "/games/{gameId}", method = RequestMethod.PATCH)
-    public ResponseEntity<?> acceptGame(@PathVariable int gameId, @RequestBody boolean accepted) throws Exception {
+    @RequestMapping(path = "/games/{gameId}", method = RequestMethod.POST)
+    public ResponseEntity<?> acceptGame(@PathVariable int gameId) throws Exception {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String username = auth.getName();
         gameService.acceptGame(gameId, username);
-        return ResponseEntity.noContent().location(linkTo(methodOn(GameController.class).getGame(gameId)).toUri()).build();
+        return ResponseEntity.status(HttpStatus.SEE_OTHER).location(linkTo(methodOn(GameController.class).getGame(gameId)).toUri()).build();
     }
 
     // GET GAME STATE
@@ -73,13 +74,26 @@ public class GameController {
     public ResponseEntity<?> doAction(@PathVariable(value = "gameId") int gameId,
                                   @PathVariable(value = "actionId") int actionId,
                                   @RequestBody ActionDto actionDto) throws Exception {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String username = auth.getName();
         Game game = gameService.getGame(gameId);
-        if(actionId == game.getLastAction() + 1) {
+        if(actionId != game.getLastAction() + 1) {
+            throw new ForbiddenActionException("Changing actions is not allowed");
+        } else if(!game.isAcepted()) {
+            throw new ForbiddenActionException("Game is not accepted");
+        } else {
             Backgammon backgammon = new Backgammon();
             try {
                 backgammon.restore(game.getState());
             } catch (Exception ex) {
                 throw new InternalError("Invalid backgammon state");
+            }
+            if(backgammon.getState().getCurrentPlayer() == Color.White && !game.getWhitePlayer().getName().equals(username)) {
+                throw new ForbiddenActionException("Not players turn");
+            } else if(backgammon.getState().getCurrentPlayer() == Color.Black && !game.getBlackPlayer().getName().equals(username)) {
+                throw new ForbiddenActionException("Not players turn");
+            } else if(backgammon.getState().getCurrentPlayer() == Color.None) {
+                throw new ForbiddenActionException("Not players turn");
             }
             try {
                 createAction(actionDto).execute(backgammon, null);
@@ -90,8 +104,6 @@ public class GameController {
             } catch(Exception ex) {
                 throw new InvalidActionException(ex.getMessage());
             }
-        } else {
-            throw new ForbiddenActionException("Changing actions is not allowed");
         }
     }
 
