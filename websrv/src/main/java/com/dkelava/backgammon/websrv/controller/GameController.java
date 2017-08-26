@@ -3,143 +3,150 @@ package com.dkelava.backgammon.websrv.controller;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.*;
 
 import com.dkelava.backgammon.bglib.game.actions.actions.*;
-import com.dkelava.backgammon.bglib.model.Backgammon;
-import com.dkelava.backgammon.bglib.model.BackgammonState;
-import com.dkelava.backgammon.bglib.model.Color;
-import com.dkelava.backgammon.websrv.domain.Game;
-import com.dkelava.backgammon.websrv.exceptions.InternalError;
+import com.dkelava.backgammon.bglib.model.*;
+import com.dkelava.backgammon.websrv.domain.*;
+import com.dkelava.backgammon.websrv.exceptions.*;
 import com.dkelava.backgammon.websrv.resources.*;
-import com.dkelava.backgammon.websrv.exceptions.ForbiddenActionException;
-import com.dkelava.backgammon.websrv.exceptions.InvalidActionException;
-import com.dkelava.backgammon.websrv.exceptions.MissingResourceException;
 import com.dkelava.backgammon.websrv.services.*;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 
 @RestController
 public class GameController {
 
     @Autowired
     private GameService gameService;
+    @Autowired
+    private GameRequestService gameRequestService;
 
-    // CREATE GAME
-    @RequestMapping(path = "/games", method = RequestMethod.POST)
-    public ResponseEntity<?> createGame(@RequestBody GameDescriptorDto gameDescriptorDto) throws Exception {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        String username = auth.getName();
-        Backgammon backgammon = new Backgammon();
-        Game game = gameService.createGame(username, gameDescriptorDto.getWhitePlayerName(), gameDescriptorDto.getBlackPlayerName(), backgammon.encode());
-        return ResponseEntity.created(linkTo(methodOn(GameController.class).getGame(game.getId())).toUri()).build();
+    // REQUEST GAME
+    @RequestMapping(path = "/requests", method = RequestMethod.POST)
+    public ResponseEntity<?> requestGame(@RequestBody GameRequestDto gameRequestDto) {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        if(username.equals(gameRequestDto.getOpponent())) {
+            throw new UnprocessableEntityException("Opponent can not be the user who is making game request.");
+        }
+        GameRequest gameRequest = gameRequestService.createGameRequest(username, gameRequestDto.getOpponent());
+        return ResponseEntity.created(linkTo(methodOn(GameController.class).getGameRequest(gameRequest.getId())).toUri()).build();
     }
 
-    // ACCEPT GAME
-    @RequestMapping(path = "/games/{gameId}", method = RequestMethod.POST)
-    public ResponseEntity<?> acceptGame(@PathVariable int gameId) throws Exception {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        String username = auth.getName();
-        gameService.acceptGame(gameId, username);
-        return ResponseEntity.status(HttpStatus.SEE_OTHER).location(linkTo(methodOn(GameController.class).getGame(gameId)).toUri()).build();
+    // GET GAME REQUEST
+    @RequestMapping(path = "/requests/{gameRequestId}", method = RequestMethod.GET)
+    public ResponseEntity<?> getGameRequest(@PathVariable int gameRequestId) {
+        GameRequest gameRequest = gameRequestService.getGameRequest(gameRequestId);
+        GameRequestResource gameRequestResource = new GameRequestResource(gameRequest.getChallenger().getName(), gameRequest.getOpponent().getName(), gameRequest.isAccepted());
+        gameRequestResource.add(linkTo(methodOn(GameController.class).getGameRequest(gameRequestId)).withSelfRel());
+        gameRequestResource.add(linkTo(methodOn(PlayerController.class).getPlayer(gameRequest.getChallenger().getName())).withRel("challenger"));
+        gameRequestResource.add(linkTo(methodOn(PlayerController.class).getPlayer(gameRequest.getOpponent().getName())).withRel("opponent"));
+        if(gameRequest.isAccepted()) {
+            gameRequestResource.add(linkTo(methodOn(GameController.class).getGame(gameRequest.getGame().getId())).withRel("game"));
+        }
+        return ResponseEntity.ok(gameRequestResource);
+    }
+
+    // ACCEPT GAME REQUEST
+    @RequestMapping(path = "/requests/{gameRequestId}", method = RequestMethod.POST)
+    public ResponseEntity<?> acceptGameRequest(@PathVariable int gameRequestId) throws Exception {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        GameRequest gameRequest = gameRequestService.getGameRequest(gameRequestId);
+        if(!username.equals(gameRequest.getOpponent().getName())) {
+            throw new AccessDeniedException("Only challenged opponent can accept game");
+        }
+        if(gameRequest.isAccepted()) {
+            return ResponseEntity.status(HttpStatus.SEE_OTHER).location(linkTo(methodOn(GameController.class).getGame(gameRequest.getGame().getId())).toUri()).build();
+        }
+        Game game = gameService.createGame(gameRequest.getChallenger().getName(), gameRequest.getOpponent().getName(), new Backgammon().encode());
+        gameRequest.setGame(game);
+        gameRequestService.save(gameRequest);
+        return ResponseEntity.status(HttpStatus.SEE_OTHER).location(linkTo(methodOn(GameController.class).getGame(game.getId())).toUri()).build();
     }
 
     // GET GAME STATE
     @RequestMapping(path = "/games/{gameId}", method = RequestMethod.GET)
-    public ResponseEntity<GameResource> getGame(@PathVariable int gameId) throws Exception {
+    public ResponseEntity<GameResource> getGame(@PathVariable int gameId) {
         Game game = gameService.getGame(gameId);
-        int actionId = game.getLastAction();
         Backgammon backgammon = new Backgammon();
         try {
             backgammon.restore(game.getState());
         } catch(Exception ex) {
-            throw new InternalError("Invalid backgammon state");
+            throw new ServerError("Invalid backgammon state");
         }
         GameResource gameResource = new GameResource(backgammon.getState());
         gameResource.add(linkTo(methodOn(GameController.class).getGame(gameId)).withSelfRel());
-        if(!isGameFinished(backgammon.getState())) {
-            gameResource.add(linkTo(methodOn(GameController.class).doAction(gameId, actionId + 1, null)).withRel("nextAction"));
-        }
         gameResource.add(linkTo(methodOn(PlayerController.class).getPlayer(game.getWhitePlayer().getName())).withRel("whitePlayer"));
         gameResource.add(linkTo(methodOn(PlayerController.class).getPlayer(game.getBlackPlayer().getName())).withRel("blackPlayer"));
         return ResponseEntity.ok(gameResource);
     }
 
-    // ACTION
-    @RequestMapping(path = "/games/{gameId}/action/{actionId}", method = RequestMethod.PUT)
-    public ResponseEntity<?> doAction(@PathVariable(value = "gameId") int gameId,
-                                  @PathVariable(value = "actionId") int actionId,
-                                  @RequestBody ActionDto actionDto) throws Exception {
+    // DO ACTION
+    @RequestMapping(path = "/games/{gameId}", method = RequestMethod.POST)
+    public ResponseEntity<?> doAction(@PathVariable(value = "gameId") int gameId, @RequestBody ActionDto actionDto) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String username = auth.getName();
         Game game = gameService.getGame(gameId);
-        if(actionId != game.getLastAction() + 1) {
-            throw new ForbiddenActionException("Changing actions is not allowed");
-        } else if(!game.isAcepted()) {
-            throw new ForbiddenActionException("Game is not accepted");
-        } else {
-            Backgammon backgammon = new Backgammon();
-            try {
-                backgammon.restore(game.getState());
-            } catch (Exception ex) {
-                throw new InternalError("Invalid backgammon state");
-            }
-            if(backgammon.getState().getCurrentPlayer() == Color.White && !game.getWhitePlayer().getName().equals(username)) {
-                throw new ForbiddenActionException("Not players turn");
-            } else if(backgammon.getState().getCurrentPlayer() == Color.Black && !game.getBlackPlayer().getName().equals(username)) {
-                throw new ForbiddenActionException("Not players turn");
-            } else if(backgammon.getState().getCurrentPlayer() == Color.None) {
-                throw new ForbiddenActionException("Not players turn");
-            }
-            try {
-                createAction(actionDto).execute(backgammon, null);
-                game.setState(backgammon.encode());
-                game.setNextAction();
-                gameService.saveGame(game);
-                return ResponseEntity.created(linkTo(methodOn(GameController.class).getAction(gameId, actionId)).toUri()).build();
-            } catch(Exception ex) {
-                throw new InvalidActionException(ex.getMessage());
-            }
+        Backgammon backgammon = new Backgammon();
+        try {
+            backgammon.restore(game.getState());
+        } catch (Exception ex) {
+            throw new ServerError("Invalid backgammon state");
+        }
+        if(backgammon.getState().getCurrentPlayer() == Color.White && !game.getWhitePlayer().getName().equals(username)) {
+            throw new ForbiddenActionException("Not players turn");
+        } else if(backgammon.getState().getCurrentPlayer() == Color.Black && !game.getBlackPlayer().getName().equals(username)) {
+            throw new ForbiddenActionException("Not players turn");
+        } else if(backgammon.getState().getCurrentPlayer() == Color.None) {
+            throw new ForbiddenActionException("Not players turn");
+        }
+        try {
+            createAction(actionDto).execute(backgammon, null);
+            game.setState(backgammon.encode());
+            gameService.saveGame(game);
+            return ResponseEntity.status(HttpStatus.SEE_OTHER).location(linkTo(methodOn(GameController.class).getGame(gameId)).toUri()).build();
+        } catch(Exception ex) {
+            throw new InvalidActionException(ex.getMessage());
         }
     }
 
-    // GET ACTION
-    @RequestMapping(path = "/games/{gameId}/action/{actionId}", method = RequestMethod.GET)
-    public ResponseEntity<?> getAction(@PathVariable(value = "gameId") int gameId,
-                                      @PathVariable(value = "actionId") int actionId) throws Exception {
-        //gameService.getGame(gameId);
-        // TODO: return body with action data
-        return ResponseEntity.ok().build();
-    }
-
     @ExceptionHandler(InvalidActionException.class)
-    public ResponseEntity handleInvalidActionException(Exception e, HttpServletResponse response) throws IOException {
+    public ResponseEntity handleInvalidActionException(InvalidActionException e, HttpServletResponse response) {
         return ResponseEntity.badRequest().body(
                 new ApiError(HttpStatus.BAD_REQUEST, "Invalid GameAction", e.getMessage()));
     }
 
     @ExceptionHandler(ForbiddenActionException.class)
-    public ResponseEntity handleForbiddenActionException(Exception e, HttpServletResponse response) throws IOException {
+    public ResponseEntity handleForbiddenActionException(ForbiddenActionException e, HttpServletResponse response) {
         return ResponseEntity.badRequest().body(
                 new ApiError(HttpStatus.FORBIDDEN, "Forbidden GameAction", e.getMessage()));
     }
 
     @ExceptionHandler(MissingResourceException.class)
-    public ResponseEntity handleMissingResourceException(Exception e, HttpServletResponse response) throws IOException {
+    public ResponseEntity handleMissingResourceException(MissingResourceException e, HttpServletResponse response) {
         return ResponseEntity.notFound().build();
     }
 
-    @ExceptionHandler(InternalError.class)
-    public ResponseEntity handleInternalError(Exception e, HttpServletResponse response) throws IOException {
+    @ExceptionHandler(ServerError.class)
+    public ResponseEntity handleInternalError(ServerError e, HttpServletResponse response) {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
                 new ApiError(HttpStatus.INTERNAL_SERVER_ERROR, "Server error", e.getMessage())
         );
     }
 
+    @ExceptionHandler(UnprocessableEntityException.class)
+    public ResponseEntity handleUnprocessableEntityException(UnprocessableEntityException e, HttpServletResponse response) {
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(
+                new ApiError(HttpStatus.UNPROCESSABLE_ENTITY, "Unprocessable Entity", e.getMessage())
+        );
+    }
+
+    /*
     private static boolean isGameFinished(BackgammonState backgammonState) {
         switch (backgammonState.getStatus()) {
             case Initial:
@@ -151,7 +158,7 @@ public class GameController {
             default:
                 return true;
         }
-    }
+    }*/
 
     private Action createAction(ActionDto actionDto) {
         ActionType actionType = ActionType.parse(actionDto.getAction());

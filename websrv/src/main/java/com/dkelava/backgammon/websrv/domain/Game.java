@@ -5,28 +5,6 @@ import javax.persistence.*;
 @Entity
 public class Game {
 
-    @Id
-    @GeneratedValue
-    private Integer id;
-
-    @Column
-    private String state;
-
-    @ManyToOne
-    private Player whitePlayer;
-
-    @ManyToOne
-    private Player blackPlayer;
-
-    @Column
-    private Boolean whitePlayerAccepted;
-
-    @Column
-    private Boolean blackPlayerAccepted;
-
-    @Column
-    private int lastAction;
-
     protected Game() {
     }
 
@@ -34,9 +12,6 @@ public class Game {
         this.whitePlayer = whitePlayer;
         this.blackPlayer = blackPlayer;
         this.state = state;
-        this.whitePlayerAccepted = false;
-        this.blackPlayerAccepted = false;
-        this.lastAction = 0;
     }
 
     public Integer getId() {
@@ -59,23 +34,16 @@ public class Game {
         return blackPlayer;
     }
 
-    public int getLastAction() {
-        return lastAction;
-    }
+    @Id
+    @GeneratedValue
+    private Integer id;
 
-    public void setNextAction() {
-        this.lastAction++;
-    }
+    @Column
+    private String state;
 
-    public void acceptWhite() {
-        this.whitePlayerAccepted = true;
-    }
+    @ManyToOne
+    private Player whitePlayer;
 
-    public void acceptBlack() {
-        this.blackPlayerAccepted = true;
-    }
-
-    public boolean isAcepted() {
-        return this.whitePlayerAccepted && this.blackPlayerAccepted;
-    }
+    @ManyToOne
+    private Player blackPlayer;
 }

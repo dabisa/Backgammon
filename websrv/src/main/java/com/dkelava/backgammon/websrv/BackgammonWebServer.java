@@ -24,7 +24,6 @@ public class BackgammonWebServer implements CommandLineRunner {
 	public void run(String... args) throws Exception {
 		playerService.createPlayer("Floyd");
 		playerService.createPlayer("Dabisa");
-		Backgammon backgammon = new Backgammon();
-		gameService.createGame("Dabisa","Floyd", "Dabisa", backgammon.encode());
+		gameService.createGame("Floyd", "Dabisa", new Backgammon().encode());
 	}
 }
