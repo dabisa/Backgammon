@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
 
+@CrossOrigin
 @RestController
 public class GameController {
 
@@ -162,13 +163,13 @@ public class GameController {
 
     private Action createAction(ActionDto actionDto) {
         ActionType actionType = ActionType.parse(actionDto.getAction());
-        PointId source = PointId.parse(actionDto.getSource());
-        PointId destination = PointId.parse(actionDto.getDestination());
+        PointId source = PointId.from(actionDto.getSource());
+        PointId destination = PointId.from(actionDto.getDestination());
         switch (actionType) {
             case Roll:
                 return new RollAction();
             case Move:
-                return new MoveAction(source.create(), destination.create());
+                return new MoveAction(source.getPoint(), destination.getPoint());
             case PickUpDice:
                 return new ClearDiceAction();
             case OfferDouble:
