@@ -2,12 +2,9 @@ package com.dkelava.backgammon.bglib.model;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.TreeTraverser;
+import javafx.util.Pair;
 
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * MoveNode represents a tree of all possible moves for some board state.
@@ -302,6 +299,21 @@ public final class MoveNode {
             return moves;
         } else {
             return null;
+        }
+    }
+
+    public Iterable<Pair<Point, Point>> getAvailableMoves() {
+        HashSet<Pair<Point, Point>> availableMoves = new HashSet<>();
+        addMoves(availableMoves, this._node, null);
+        return availableMoves;
+    }
+
+    private static void addMoves(Collection<Pair<Point, Point>> moves, Node<Move> node, Point source) {
+        for(Node<Move> child : node.children) {
+            if(node.getData() == null || node.getData().getDestination() == child.getData().getSource()) {
+                moves.add(new Pair<>(source != null ? source : child.getData().getSource(), child.getData().getDestination()));
+                addMoves(moves, child, source != null ? source : child.getData().getSource());
+            }
         }
     }
 
