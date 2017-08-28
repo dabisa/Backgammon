@@ -25,5 +25,6 @@ public class BackgammonWebServer implements CommandLineRunner {
 		playerService.createPlayer("Floyd");
 		playerService.createPlayer("Dabisa");
 		gameService.createGame("Floyd", "Dabisa", new Backgammon().encode());
+		gameService.createGame("Dabisa", "Dabisa", new Backgammon().encode());
 	}
 }
