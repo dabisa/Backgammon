@@ -35,13 +35,11 @@ public enum PointId {
     WhiteHome("WH", Point.WhiteHome),
     BlackHome("BH", Point.BlackHome);
 
-    public Point create() {
-        return point;
-    }
-
-    public static PointId parse(String name) {
+    public static PointId from(String name) {
         return myMap.get(name);
     }
+
+    public static PointId from(Point point) { return enumMap.get(point); }
 
     PointId(String name, Point point) {
         this.name = name;
@@ -49,11 +47,21 @@ public enum PointId {
     }
 
     private static final Map<String, PointId> myMap = new HashMap<>();
+    private static final Map<Point, PointId> enumMap = new HashMap<>();
     static
     {
         for(PointId pointId : PointId.values()) {
             myMap.put(pointId.name, pointId);
+            enumMap.put(pointId.point, pointId);
         }
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public Point getPoint() {
+        return point;
     }
 
     private final String name;

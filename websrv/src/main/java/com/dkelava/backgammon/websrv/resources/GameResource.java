@@ -1,30 +1,77 @@
 package com.dkelava.backgammon.websrv.resources;
 
-import com.dkelava.backgammon.bglib.model.BackgammonState;
-import com.dkelava.backgammon.bglib.model.Color;
-import com.dkelava.backgammon.bglib.model.Point;
-import com.dkelava.backgammon.bglib.model.PointState;
+import com.dkelava.backgammon.bglib.model.*;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import javafx.util.Pair;
 import org.springframework.hateoas.ResourceSupport;
 
-import java.util.ArrayList;
-import java.util.List;
+import javax.validation.constraints.NotNull;
+import java.util.*;
 
 /**
  * Created by Dabisa on 12/08/2017.
  */
 public class GameResource extends ResourceSupport {
 
+    public static class DieDto {
+        public DieDto(int die, int moves) {
+            this.die = die;
+            this.moves = moves;
+        }
+        public int die;
+        public int moves;
+    };
+
+    public static class MoveDto {
+
+        @JsonCreator
+        public MoveDto(
+                @JsonProperty("source") String source,
+                @JsonProperty("destination") String destination,
+                @JsonProperty("dice") List<Integer> dice) {
+            this.source = source;
+            this.destination = destination;
+            this.dice = dice;
+        }
+
+        public String getSource() {
+            return source;
+        }
+
+        public String getDestination() {
+            return destination;
+        }
+
+        public Collection<Integer> getDice() {
+            return dice;
+        }
+
+        public Collection<MoveDto> getMoves() {
+            return moves;
+        }
+
+        @NotNull
+        private final String source;
+        @NotNull
+        private final String destination;
+        @NotNull
+        private final Collection<Integer> dice;
+        @JsonInclude(JsonInclude.Include.NON_EMPTY)
+        private Collection<MoveDto> moves = new LinkedList<>();
+    }
+
     @JsonProperty
     private final String status;
     @JsonProperty
     private final String currentPlayer;
     @JsonProperty
+    private final String cubeOwner;
+    @JsonProperty
     private final String winner;
     @JsonProperty
-    private final Integer dieOne;
-    @JsonProperty
-    private final Integer dieTwo;
+    private final List<DieDto> dice = new LinkedList<>();
     @JsonProperty
     private final String whiteHome;
     @JsonProperty
@@ -35,19 +82,50 @@ public class GameResource extends ResourceSupport {
     private final String blackBar;
     @JsonProperty
     private final List<String> points = new ArrayList<>(24);
+    @JsonProperty
+    private final List<MoveDto> availableMoves = new ArrayList<>();
 
     public GameResource(BackgammonState backgammonState) {
-        this.status = backgammonState.getStatus().toString().toLowerCase();
-        this.currentPlayer = backgammonState.getCurrentPlayer().toString().toLowerCase();
-        this.winner = backgammonState.getWinner().toString().toLowerCase();
-        this.dieOne = backgammonState.getDieOne().getValue();
-        this.dieTwo = backgammonState.getDieTwo().getValue();
+        this.status = backgammonState.getStatus().toString();
+        this.currentPlayer = backgammonState.getCurrentPlayer().toString();
+        this.cubeOwner = backgammonState.getCubeOwner().toString();
+        this.winner = backgammonState.getWinner().toString();
         this.whiteHome = encodePointState(backgammonState.getPointState(Point.WhiteHome));
         this.whiteBar = encodePointState(backgammonState.getPointState(Point.WhiteBar));
         this.blackHome = encodePointState(backgammonState.getPointState(Point.BlackHome));
         this.blackBar = encodePointState(backgammonState.getPointState(Point.BlackBar));
         for(int i = 1; i <= 24; ++i) {
             points.add(encodePointState(backgammonState.getPointState(Point.getPoint(Color.White, i))));
+        }
+        MoveNode moveNode = backgammonState.getMoves();
+        if(moveNode != null) {
+            generateMoves(moveNode, availableMoves);
+            DiceSet diceState = moveNode.getDiceState();
+            Die.Face dieOne = backgammonState.getDieOne();
+            Die.Face dieTwo = backgammonState.getDieTwo();
+            this.dice.add(new DieDto(dieOne.getValue(), diceState.getNumberOfMoves(dieOne)));
+            if(dieOne != dieTwo) {
+                this.dice.add(new DieDto(dieTwo.getValue(), diceState.getNumberOfMoves(dieTwo)));
+            }
+        }
+    }
+
+    private static void generateMoves(MoveNode moveNode, Collection<MoveDto> availableMoves) {
+        for(Pair<Point, Point> move : moveNode.getAvailableMoves()) {
+            PointId source = PointId.from(move.getKey());
+            PointId destination = PointId.from(move.getValue());
+            List<Integer> dice = new LinkedList<>();
+            moveNode.find(move.getKey(), move.getValue()).getMoves(moveNode).forEach(submove -> {
+                dice.add(submove.getDie().getValue());
+            });
+            MoveDto moveDto = new MoveDto(source.getName(), destination.getName(), dice);
+            availableMoves.add(moveDto);
+            /*
+            // generate sub moves
+            MoveNode childMoveNode = moveNode.find(move.getKey(), move.getValue());
+            if(!childMoveNode.isEnd()) {
+                generateMoves(childMoveNode, moveDto.getMoves());
+            }//*/
         }
     }
 
