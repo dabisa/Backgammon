@@ -97,16 +97,19 @@ public class GameResource extends ResourceSupport {
         for(int i = 1; i <= 24; ++i) {
             points.add(encodePointState(backgammonState.getPointState(Point.getPoint(Color.White, i))));
         }
+        Die.Face dieOne = backgammonState.getDieOne();
+        Die.Face dieTwo = backgammonState.getDieTwo();
         MoveNode moveNode = backgammonState.getMoves();
         if(moveNode != null) {
             generateMoves(moveNode, availableMoves);
             DiceSet diceState = moveNode.getDiceState();
-            Die.Face dieOne = backgammonState.getDieOne();
-            Die.Face dieTwo = backgammonState.getDieTwo();
             this.dice.add(new DieDto(dieOne.getValue(), diceState.getNumberOfMoves(dieOne)));
             if(dieOne != dieTwo) {
                 this.dice.add(new DieDto(dieTwo.getValue(), diceState.getNumberOfMoves(dieTwo)));
             }
+        } else if(dieOne != Die.Face.None && dieTwo != Die.Face.None){
+            this.dice.add(new DieDto(dieOne.getValue(), 0));
+            this.dice.add(new DieDto(dieTwo.getValue(), 0));
         }
     }
 
