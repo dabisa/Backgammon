@@ -312,7 +312,9 @@ public final class MoveNode {
         for(Node<Move> child : node.children) {
             if(source == null || node.getData().getDestination() == child.getData().getSource()) {
                 moves.add(new Pair<>(source != null ? source : child.getData().getSource(), child.getData().getDestination()));
-                addMoves(moves, child, source != null ? source : child.getData().getSource());
+                if(!child.getData().isHit()) {
+                    addMoves(moves, child, source != null ? source : child.getData().getSource());
+                }
             }
         }
     }
