@@ -310,7 +310,7 @@ public final class MoveNode {
 
     private static void addMoves(Collection<Pair<Point, Point>> moves, Node<Move> node, Point source) {
         for(Node<Move> child : node.children) {
-            if(node.getData() == null || node.getData().getDestination() == child.getData().getSource()) {
+            if(source == null || node.getData().getDestination() == child.getData().getSource()) {
                 moves.add(new Pair<>(source != null ? source : child.getData().getSource(), child.getData().getDestination()));
                 addMoves(moves, child, source != null ? source : child.getData().getSource());
             }
