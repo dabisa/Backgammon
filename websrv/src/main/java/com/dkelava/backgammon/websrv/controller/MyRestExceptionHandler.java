@@ -23,9 +23,6 @@ public class MyRestExceptionHandler extends ResponseEntityExceptionHandler {
     protected ResponseEntity<Object> handleHttpMessageNotReadable(HttpMessageNotReadableException ex, HttpHeaders headers, HttpStatus status, WebRequest request) {
         Throwable exception = ex.getMostSpecificCause() != null ? ex.getMostSpecificCause() : ex;
 
-        ///
-        System.out.print(exception.getClass().getCanonicalName());
-
         String exceptionName = exception.getClass().getSimpleName();
         String message = exception.getMessage();
 
