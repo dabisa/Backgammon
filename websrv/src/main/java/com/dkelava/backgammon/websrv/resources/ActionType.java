@@ -10,6 +10,7 @@ public enum ActionType {
     Move("move"),
     PickUpDice("pickUpDice"),
     OfferDouble("offerDouble"),
+    RejectDouble("rejectDouble"),
     AcceptDouble("acceptDouble"),
     Quit("quit");
 

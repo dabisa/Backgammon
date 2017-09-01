@@ -176,6 +176,8 @@ public class GameController {
                 return new DoubleStakeAction();
             case AcceptDouble:
                 return new AcceptDoubleAction();
+            case RejectDouble:
+                return new RejectDoubleAction();
             // TODO: case Quit:
             default:
                 throw new InvalidActionException("Invalid action:" + actionDto.getAction());
