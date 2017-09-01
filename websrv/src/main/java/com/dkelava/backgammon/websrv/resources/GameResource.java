@@ -4,7 +4,8 @@ import com.dkelava.backgammon.bglib.model.*;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import javafx.util.Pair;
+
+import org.apache.commons.math3.util.Pair;
 import org.springframework.hateoas.ResourceSupport;
 
 import javax.validation.constraints.NotNull;
@@ -118,7 +119,9 @@ public class GameResource extends ResourceSupport {
             PointId source = PointId.from(move.getKey());
             PointId destination = PointId.from(move.getValue());
             List<Integer> dice = new LinkedList<>();
-            moveNode.find(move.getKey(), move.getValue()).getMoves(moveNode).forEach(submove -> {
+            MoveNode nextNode = moveNode.find(move.getKey(), move.getValue());
+            List<Move> moves = nextNode.getMoves(moveNode);
+            moves.forEach(submove -> {
                 dice.add(submove.getDie().getValue());
             });
             MoveDto moveDto = new MoveDto(source.getName(), destination.getName(), dice);

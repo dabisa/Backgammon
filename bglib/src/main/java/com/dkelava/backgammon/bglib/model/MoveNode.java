@@ -2,7 +2,8 @@ package com.dkelava.backgammon.bglib.model;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.TreeTraverser;
-import javafx.util.Pair;
+
+import org.apache.commons.math3.util.Pair;
 
 import java.util.*;
 
