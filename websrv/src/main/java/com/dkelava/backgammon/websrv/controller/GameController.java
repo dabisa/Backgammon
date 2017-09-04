@@ -12,10 +12,13 @@ import com.dkelava.backgammon.websrv.services.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+
+import java.net.URI;
 
 import javax.servlet.http.HttpServletResponse;
 
@@ -27,16 +30,23 @@ public class GameController {
     private GameService gameService;
     @Autowired
     private GameRequestService gameRequestService;
+    @Autowired
+    private SimpMessagingTemplate simpMessagingTemplate;
 
     // REQUEST GAME
     @RequestMapping(path = "/requests", method = RequestMethod.POST)
     public ResponseEntity<?> requestGame(@RequestBody GameRequestDto gameRequestDto) {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        if(username.equals(gameRequestDto.getOpponent())) {
-            throw new UnprocessableEntityException("Opponent can not be the user who is making game request.");
-        }
         GameRequest gameRequest = gameRequestService.createGameRequest(username, gameRequestDto.getOpponent());
-        return ResponseEntity.created(linkTo(methodOn(GameController.class).getGameRequest(gameRequest.getId())).toUri()).build();
+        URI gameRequestLink = linkTo(methodOn(GameController.class).getGameRequest(gameRequest.getId())).toUri();
+        if(username.equals(gameRequestDto.getOpponent())) {
+            Game game = gameService.createGame(gameRequest.getChallenger().getName(), gameRequest.getOpponent().getName(), new Backgammon().encode());
+            gameRequest.setGame(game);
+            gameRequestService.save(gameRequest);
+        } else {
+            simpMessagingTemplate.convertAndSendToUser(gameRequestDto.getOpponent(), "/offer", gameRequestLink.toString());
+        }
+        return ResponseEntity.status(HttpStatus.SEE_OTHER).location(gameRequestLink).build();
     }
 
     // GET GAME REQUEST
@@ -67,12 +77,15 @@ public class GameController {
         Game game = gameService.createGame(gameRequest.getChallenger().getName(), gameRequest.getOpponent().getName(), new Backgammon().encode());
         gameRequest.setGame(game);
         gameRequestService.save(gameRequest);
-        return ResponseEntity.status(HttpStatus.SEE_OTHER).location(linkTo(methodOn(GameController.class).getGame(game.getId())).toUri()).build();
+        URI gameLink = linkTo(methodOn(GameController.class).getGame(game.getId())).toUri();
+        simpMessagingTemplate.convertAndSendToUser(gameRequest.getChallenger().getName(), "/acceptGame", gameLink.toString());
+        return ResponseEntity.status(HttpStatus.SEE_OTHER).location(gameLink).build();
     }
 
     // GET GAME STATE
     @RequestMapping(path = "/games/{gameId}", method = RequestMethod.GET)
     public ResponseEntity<GameResource> getGame(@PathVariable int gameId) {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
         Game game = gameService.getGame(gameId);
         Backgammon backgammon = new Backgammon();
         try {
@@ -84,6 +97,9 @@ public class GameController {
         gameResource.add(linkTo(methodOn(GameController.class).getGame(gameId)).withSelfRel());
         gameResource.add(linkTo(methodOn(PlayerController.class).getPlayer(game.getWhitePlayer().getName())).withRel("whitePlayer"));
         gameResource.add(linkTo(methodOn(PlayerController.class).getPlayer(game.getBlackPlayer().getName())).withRel("blackPlayer"));
+        if(username.equals(getPlayerName(backgammon.getState().getCurrentPlayer(), game))) {
+            gameResource.add(linkTo(methodOn(GameController.class).doAction(gameId, null)).withRel("action"));
+        }
         return ResponseEntity.ok(gameResource);
     }
 
@@ -107,10 +123,13 @@ public class GameController {
             throw new ForbiddenActionException("Not players turn");
         }
         try {
+            Color opponent = backgammon.getState().getCurrentPlayer().getOpponent();
             createAction(actionDto).execute(backgammon, null);
             game.setState(backgammon.encode());
             gameService.saveGame(game);
-            return ResponseEntity.status(HttpStatus.SEE_OTHER).location(linkTo(methodOn(GameController.class).getGame(gameId)).toUri()).build();
+            URI gameLink = linkTo(methodOn(GameController.class).getGame(game.getId())).toUri();
+            simpMessagingTemplate.convertAndSendToUser(getPlayerName(opponent, game), "/action", gameLink.toString());
+            return ResponseEntity.status(HttpStatus.SEE_OTHER).location(gameLink).build();
         } catch(Exception ex) {
             throw new InvalidActionException(ex.getMessage());
         }
@@ -147,21 +166,7 @@ public class GameController {
         );
     }
 
-    /*
-    private static boolean isGameFinished(BackgammonState backgammonState) {
-        switch (backgammonState.getStatus()) {
-            case Initial:
-            case Rolling:
-            case Moving:
-            case DoubleStake:
-            case NoMoves:
-                return false;
-            default:
-                return true;
-        }
-    }*/
-
-    private Action createAction(ActionDto actionDto) {
+    private static Action createAction(ActionDto actionDto) {
         ActionType actionType = ActionType.parse(actionDto.getAction());
         PointId source = PointId.from(actionDto.getSource());
         PointId destination = PointId.from(actionDto.getDestination());
@@ -181,6 +186,17 @@ public class GameController {
             // TODO: case Quit:
             default:
                 throw new InvalidActionException("Invalid action:" + actionDto.getAction());
+        }
+    }
+
+    private static String getPlayerName(Color color, Game game) {
+        switch (color) {
+            case White:
+                return game.getWhitePlayer().getName();
+            case Black:
+                return game.getBlackPlayer().getName();
+            default:
+                return "";
         }
     }
 }
