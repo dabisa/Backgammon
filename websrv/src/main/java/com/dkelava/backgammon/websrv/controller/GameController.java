@@ -2,9 +2,11 @@ package com.dkelava.backgammon.websrv.controller;
 
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.*;
 
+import com.dkelava.backgammon.bglib.game.*;
 import com.dkelava.backgammon.bglib.game.actions.actions.*;
 import com.dkelava.backgammon.bglib.model.*;
 import com.dkelava.backgammon.websrv.domain.*;
+import com.dkelava.backgammon.websrv.domain.Game;
 import com.dkelava.backgammon.websrv.exceptions.*;
 import com.dkelava.backgammon.websrv.resources.*;
 import com.dkelava.backgammon.websrv.services.*;
@@ -124,11 +126,17 @@ public class GameController {
         }
         try {
             Color opponent = backgammon.getState().getCurrentPlayer().getOpponent();
-            createAction(actionDto).execute(backgammon, null);
+            Boolean[] isMoveHit = new Boolean[1];
+            createAction(actionDto).execute(backgammon, new GameObserverBase() {
+                @Override
+                public void onMove(BackgammonState state, Point source, Point destination, boolean isHit) {
+                    isMoveHit[0] = isHit;
+                }
+            });
             game.setState(backgammon.encode());
             gameService.saveGame(game);
             URI gameLink = linkTo(methodOn(GameController.class).getGame(game.getId())).toUri();
-            simpMessagingTemplate.convertAndSendToUser(getPlayerName(opponent, game), "/action", gameLink.toString());
+            simpMessagingTemplate.convertAndSendToUser(getPlayerName(opponent, game), "/action", new ActionEventDto(gameLink, actionDto.getAction(),actionDto.getSource(), actionDto.getDestination(), isMoveHit[0]));
             return ResponseEntity.status(HttpStatus.SEE_OTHER).location(gameLink).build();
         } catch(Exception ex) {
             throw new InvalidActionException(ex.getMessage());
