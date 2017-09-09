@@ -2,11 +2,10 @@ package com.dkelava.backgammon.websrv.domain;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.Id;
 
-/**
- * Created by Dabisa on 11/08/2017.
- */
 @Entity
 public class Player {
 
@@ -22,14 +21,18 @@ public class Player {
     @Column
     private Integer gamesDraw;
 
+    @Enumerated(EnumType.ORDINAL)
+    private PlayerType playerType;
+
     protected Player() {
     }
 
-    public Player(String name) {
+    public Player(String name, PlayerType playerType) {
         this.name = name;
         this.gamesWon = 0;
         this.gamesLost = 0;
         this.gamesDraw = 0;
+        this.playerType = playerType;
     }
 
     public String getName() {
@@ -62,5 +65,9 @@ public class Player {
 
     public void setGamesDraw(Integer gamesDraw) {
         this.gamesDraw = gamesDraw;
+    }
+
+    public PlayerType getPlayerType() {
+        return playerType;
     }
 }

@@ -8,6 +8,8 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
+import java.io.File;
+
 @SpringBootApplication
 public class BackgammonWebServer implements CommandLineRunner {
 
@@ -22,8 +24,8 @@ public class BackgammonWebServer implements CommandLineRunner {
 
 	@Override
 	public void run(String... args) throws Exception {
-		playerService.createPlayer("Floyd");
-		playerService.createPlayer("Dabisa");
+		playerService.createAIPlayer("Floyd", new File("floyd.dat"));
+		playerService.createHumanPlayer("Dabisa");
 		gameService.createGame("Floyd", "Dabisa", new Backgammon().encode());
 		gameService.createGame("Dabisa", "Dabisa", new Backgammon().encode());
 	}

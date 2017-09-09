@@ -5,11 +5,14 @@ import static org.springframework.hateoas.mvc.ControllerLinkBuilder.*;
 import com.dkelava.backgammon.bglib.game.*;
 import com.dkelava.backgammon.bglib.game.actions.actions.*;
 import com.dkelava.backgammon.bglib.model.*;
+import com.dkelava.backgammon.bglib.nn.BackgammonNeuralNetwork;
 import com.dkelava.backgammon.websrv.domain.*;
 import com.dkelava.backgammon.websrv.domain.Game;
+import com.dkelava.backgammon.websrv.domain.Player;
 import com.dkelava.backgammon.websrv.exceptions.*;
 import com.dkelava.backgammon.websrv.resources.*;
 import com.dkelava.backgammon.websrv.services.*;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -31,6 +34,8 @@ public class GameController {
     @Autowired
     private GameService gameService;
     @Autowired
+    private PlayerService playerService;
+    @Autowired
     private GameRequestService gameRequestService;
     @Autowired
     private SimpMessagingTemplate simpMessagingTemplate;
@@ -41,7 +46,8 @@ public class GameController {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         GameRequest gameRequest = gameRequestService.createGameRequest(username, gameRequestDto.getOpponent());
         URI gameRequestLink = linkTo(methodOn(GameController.class).getGameRequest(gameRequest.getId())).toUri();
-        if(username.equals(gameRequestDto.getOpponent())) {
+        Player opponent = playerService.getPlayer(gameRequestDto.getOpponent());
+        if((opponent != null && opponent.getPlayerType() == PlayerType.AI) || username.equals(gameRequestDto.getOpponent())) {
             Game game = gameService.createGame(gameRequest.getChallenger().getName(), gameRequest.getOpponent().getName(), new Backgammon().encode());
             gameRequest.setGame(game);
             gameRequestService.save(gameRequest);
@@ -95,19 +101,30 @@ public class GameController {
         } catch(Exception ex) {
             throw new ServerError("Invalid backgammon state");
         }
+        boolean isForActivePlayer = username.equals(getPlayerName(backgammon.getState().getCurrentPlayer(), game));
+        GameResource gameResource = getGameResource(game, backgammon, isForActivePlayer);
+        return ResponseEntity.ok(gameResource);
+    }
+
+    private GameResource getGameResource(Game game, Backgammon backgammon, boolean isForActivePlayer) {
         GameResource gameResource = new GameResource(backgammon.getState());
-        gameResource.add(linkTo(methodOn(GameController.class).getGame(gameId)).withSelfRel());
+        gameResource.add(linkTo(methodOn(GameController.class).getGame(game.getId())).withSelfRel());
         gameResource.add(linkTo(methodOn(PlayerController.class).getPlayer(game.getWhitePlayer().getName())).withRel("whitePlayer"));
         gameResource.add(linkTo(methodOn(PlayerController.class).getPlayer(game.getBlackPlayer().getName())).withRel("blackPlayer"));
-        if(username.equals(getPlayerName(backgammon.getState().getCurrentPlayer(), game))) {
-            gameResource.add(linkTo(methodOn(GameController.class).doAction(gameId, null)).withRel("action"));
+        if(isForActivePlayer) {
+            //gameResource.add(linkTo(methodOn(GameController.class).doAction(gameId, null)).withRel("action"));
+            try {
+            gameResource.add(linkTo(GameController.class, GameController.class.getMethod("doAction", Integer.class, ActionDto.class, HttpServletResponse.class), game.getId()).withRel("action"));
+            } catch (NoSuchMethodException ex) {
+                ex.printStackTrace();
+            }
         }
-        return ResponseEntity.ok(gameResource);
+        return gameResource;
     }
 
     // DO ACTION
     @RequestMapping(path = "/games/{gameId}", method = RequestMethod.POST)
-    public ResponseEntity<?> doAction(@PathVariable(value = "gameId") int gameId, @RequestBody ActionDto actionDto) {
+    public void doAction(@PathVariable(value = "gameId") Integer gameId, @RequestBody ActionDto actionDto, HttpServletResponse response) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String username = auth.getName();
         Game game = gameService.getGame(gameId);
@@ -125,7 +142,8 @@ public class GameController {
             throw new ForbiddenActionException("Not players turn");
         }
         try {
-            Color opponent = backgammon.getState().getCurrentPlayer().getOpponent();
+            Color opponentColor = backgammon.getState().getCurrentPlayer().getOpponent();
+            Color playerColor = backgammon.getState().getCurrentPlayer();
             Boolean[] isMoveHit = new Boolean[1];
             createAction(actionDto).execute(backgammon, new GameObserverBase() {
                 @Override
@@ -136,8 +154,94 @@ public class GameController {
             game.setState(backgammon.encode());
             gameService.saveGame(game);
             URI gameLink = linkTo(methodOn(GameController.class).getGame(game.getId())).toUri();
-            simpMessagingTemplate.convertAndSendToUser(getPlayerName(opponent, game), "/action", new ActionEventDto(gameLink, actionDto.getAction(),actionDto.getSource(), actionDto.getDestination(), isMoveHit[0]));
-            return ResponseEntity.status(HttpStatus.SEE_OTHER).location(gameLink).build();
+            String playerName = getPlayerName(playerColor, game);
+            String opponentName = getPlayerName(opponentColor, game);
+            Player opponent = playerService.getPlayer(opponentName);
+
+            // generate response
+            if(backgammon.getState().getCurrentPlayer().equals(playerColor)) {
+                response.setStatus(HttpServletResponse.SC_SEE_OTHER);
+                response.setHeader("Location", gameLink.toString());
+                java.io.PrintWriter wr = response.getWriter();
+                wr.flush();
+                wr.close();
+            } else {
+                response.setStatus(HttpServletResponse.SC_ACCEPTED);
+                response.setContentType("application/json");
+                GameStateDto gameState = new GameStateDto(backgammon.getState());
+                java.io.PrintWriter wr = response.getWriter();
+                ObjectMapper objectMapper = new ObjectMapper();
+                wr.print(objectMapper.writeValueAsString(gameState));
+                wr.flush();
+                wr.close();
+            }
+
+            // send messages to opponent
+            if(opponent != null && opponent.getPlayerType() == PlayerType.AI) {
+                BackgammonNeuralNetwork nn = playerService.getNeuralNetwork(opponentName);
+                while(backgammon.getState().getCurrentPlayer() == opponentColor) {
+                    Action action = nn.getStrategy().play(backgammon.getState());
+                    final ActionType[] actionType = new ActionType[1];
+                    final Point[] source = new Point[1];
+                    final Point[] destination = new Point[1];
+                    final Boolean[] isHit = new Boolean[1];
+                    action.execute(backgammon, new GameObserverBase() {
+                        @Override
+                        public void onInitialRoll(BackgammonState state) {
+                            actionType[0] = ActionType.Roll;
+                        }
+
+                        @Override
+                        public void onRoll(BackgammonState state) {
+                            actionType[0] = ActionType.Roll;
+                        }
+
+                        @Override
+                        public void onDiceCleared(BackgammonState state) {
+                            actionType[0] = ActionType.PickUpDice;
+                        }
+
+                        @Override
+                        public void onMove(BackgammonState state, Point s, Point d, boolean hit) {
+                            actionType[0] = ActionType.Move;
+                            source[0] = s;
+                            destination[0] = d;
+                            isHit[0] = hit;
+                        }
+
+                        @Override
+                        public void onDouble(BackgammonState state) {
+                            actionType[0] = ActionType.OfferDouble;
+                        }
+
+                        @Override
+                        public void onDoubleAccepted(BackgammonState state) {
+                            actionType[0] = ActionType.AcceptDouble;
+                        }
+
+                        @Override
+                        public void onSurrender(BackgammonState state) {
+                            actionType[0] = ActionType.RejectDouble;
+                        }
+                    });
+
+                    game.setState(backgammon.encode());
+                    gameService.saveGame(game);
+
+                    String actionName = actionType[0].getName();
+                    String sourceName = source[0] != null ? PointId.from(source[0]).getName() : null;
+                    String destinationName = destination[0] != null ? PointId.from(destination[0]).getName() : null;
+                    Boolean hit = isHit[0];
+                    GameStateDto gameState = new GameStateDto(backgammon.getState());
+                    System.out.println("sending action: "+actionName);
+                    boolean isLast = !backgammon.getState().getCurrentPlayer().equals(opponentColor) || backgammon.getState().getStatus().equals(Status.End);
+                    simpMessagingTemplate.convertAndSendToUser(playerName, "/action", new ActionEventDto(isLast ? gameLink : null, actionName, sourceName, destinationName, hit, isLast, gameState));
+                }
+            } else {
+                boolean isLast = !backgammon.getState().getCurrentPlayer().equals(playerColor) || backgammon.getState().getStatus().equals(Status.End);
+                GameStateDto gameState = new GameStateDto(backgammon.getState());
+                simpMessagingTemplate.convertAndSendToUser(opponentName, "/action", new ActionEventDto(isLast ? gameLink : null, actionDto.getAction(), actionDto.getSource(), actionDto.getDestination(), isMoveHit[0], isLast, gameState));
+            }
         } catch(Exception ex) {
             throw new InvalidActionException(ex.getMessage());
         }

@@ -47,6 +47,12 @@ public class WebSocketBrokerConfig extends AbstractWebSocketMessageBrokerConfigu
 
                 return message;
             }
-        });
+        }).taskExecutor().corePoolSize(1);  // needed to receive messages in order
+    }
+
+
+    @Override
+    public void configureClientOutboundChannel(ChannelRegistration registration) {
+        registration.taskExecutor().corePoolSize(1); // needed to send messages in order
     }
 }

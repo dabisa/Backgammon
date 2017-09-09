@@ -1,17 +1,23 @@
 package com.dkelava.backgammon.websrv.resources;
 
-import com.dkelava.backgammon.bglib.model.*;
+import com.dkelava.backgammon.bglib.model.BackgammonState;
+import com.dkelava.backgammon.bglib.model.Color;
+import com.dkelava.backgammon.bglib.model.DiceSet;
+import com.dkelava.backgammon.bglib.model.Die;
+import com.dkelava.backgammon.bglib.model.Move;
+import com.dkelava.backgammon.bglib.model.MoveNode;
+import com.dkelava.backgammon.bglib.model.Point;
+import com.dkelava.backgammon.bglib.model.PointState;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import org.apache.commons.math3.util.Pair;
-import org.springframework.hateoas.ResourceSupport;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
 
-/**
- * Created by Dabisa on 12/08/2017.
- */
-public class GameResource extends ResourceSupport {
+public class GameStateDto {
 
     @JsonProperty
     private final String status;
@@ -36,7 +42,7 @@ public class GameResource extends ResourceSupport {
     @JsonProperty
     private final List<MoveDto> availableMoves = new ArrayList<>();
 
-    public GameResource(BackgammonState backgammonState) {
+    public GameStateDto(BackgammonState backgammonState) {
         this.status = backgammonState.getStatus().toString();
         this.currentPlayer = backgammonState.getCurrentPlayer().toString();
         this.cubeOwner = backgammonState.getCubeOwner().toString();
