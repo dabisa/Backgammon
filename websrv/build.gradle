@@ -22,9 +22,9 @@ repositories {
 }
 
 dependencies {
-	runtime group: 'org.slf4j', name: 'slf4j-simple', version: '1.7.24'
+	//runtime group: 'org.slf4j', name: 'slf4j-simple', version: '1.7.24'
 	runtime group: 'org.nd4j', name: 'nd4j-native', version: '0.7.2'
-	runtime group: 'org.nd4j', name: 'nd4j-native', version: '0.7.2', classifier: 'windows-x86_64'
+	runtime group: 'org.nd4j', name: 'nd4j-native', version: '0.7.2', classifier: 'linux-x86_64'
 
 	compile('org.springframework.boot:spring-boot-starter-data-jpa')
 	compile('org.springframework.boot:spring-boot-starter-data-rest')

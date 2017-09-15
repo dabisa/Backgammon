@@ -1,1 +1,1 @@
-include ':app', ':bglib', ':bgtrainer', ':websrv'
+include ':bglib', ':websrv', ':bgtrainer', ':app'

@@ -9,3 +9,5 @@ allprojects {
 task clean(type: Delete) {
     delete rootProject.buildDir
 }
+
+task stage(dependsOn: ['websrv:build'])
