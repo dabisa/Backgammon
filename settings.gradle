@@ -1,1 +1,4 @@
-include ':bglib', ':websrv', ':bgtrainer', ':app'
+include ':bglib', ':websrv', ':bgtrainer' 
+if (System.getenv()['ANDROID_HOME']) {
+	include ':app'
+}
